@@ -46,7 +46,7 @@ def exp_config():
     render_body = False
     high_res_hands = False
     # Combination of [black|white|imagenet|lsun]
-    background_datasets = ['imagenet', 'lsun']
+    background_datasets = ['habitat'] #['imagenet', 'lsun']
     # Paths to background datasets
     lsun_path = '/sequoia/data2/gvarol/datasets/LSUN/data/img'
     imagenet_path = '/sequoia/data3/datasets/imagenet'
@@ -184,9 +184,13 @@ def run(_config, results_root, split, frame_nb, frame_start, z_min, z_max,
         camera_name = 'Camera'
         # Randomly pick background
         bg_path = random.choice(backgrounds)
+        bg_depth_path = bg_path.replace('rgba', 'depth')
+        if bg_depth_path == bg_path or not os.path.exists(bg_depth_path):
+            bg_depth_path = None
+
         depth_path = os.path.join(folder_depth, frame_prefix)
         tmp_segm_path = render.set_cycle_nodes(
-            scene, bg_path, segm_path=folder_temp_segm, depth_path=depth_path)
+            scene, bg_path, segm_path=folder_temp_segm, depth_path=depth_path, bg_depth_name=bg_depth_path)
         tmp_files.append(tmp_segm_path)
         tmp_depth = depth_path + '{:04d}.exr'.format(1)
         tmp_files.append(tmp_depth)

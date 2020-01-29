@@ -284,10 +284,13 @@ def run(results_root, split, frame_nb, frame_start, z_min, z_max, texture_zoom,
         # Randomly pick background
         bg_path = random.choice(backgrounds)
 
+        bg_depth_path = bg_path.replace('rgba', 'depth')
+        if not os.path.exists(bg_depth_path):
+            bg_depth_path = None
         # Setup depth and segmentation rendering
         depth_path = os.path.join(folder_depth, frame_prefix)
         tmp_segm_path = render.set_cycle_nodes(
-            scene, bg_path, segm_path=folder_temp_segm, depth_path=depth_path)
+            scene, bg_path, segm_path=folder_temp_segm, depth_path=depth_path, bg_depth_name=bg_depth_path)
         tmp_files.append(tmp_segm_path)
         tmp_depth = depth_path + '{:04d}.exr'.format(1)
         tmp_files.append(tmp_depth)

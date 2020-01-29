@@ -18,7 +18,7 @@ def get_image_paths(
         shapenet_split_folder='assets/textures/shapenet',
         lsun_path='/sequoia/data2/gvarol/datasets/LSUN/data/img',
         imagenet_path='/sequoia/data3/datasets/imagenet'):
-    valid_datasetnames = ['imagenet', 'lsun', 'white', 'black', 'shapenet']
+    valid_datasetnames = ['imagenet', 'lsun', 'white', 'black', 'shapenet', 'habitat']
     erroneous_datasetnames = set(background_datasets) - set(valid_datasetnames)
     if len(erroneous_datasetnames):
         raise ValueError('{} not in {}'.format(erroneous_datasetnames,
@@ -49,6 +49,8 @@ def get_image_paths(
                 split_folder=shapenet_split_folder,
                 shapenet_folder=shapenet_folder,
                 split=split))
+    if 'habitat' in background_datasets:
+        backgrounds.append('assets/backgrounds/habitat/test.rgba.00973.png')
     return backgrounds
 
 
