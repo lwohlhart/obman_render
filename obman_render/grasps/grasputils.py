@@ -107,6 +107,20 @@ def read_grasp_folder(
                 raw_line = json_f.read()
                 grasps = json.loads(raw_line)
                 grasp_list = grasps['grasps']
+                try:
+                    # distances first 0-15 proximity of hand parts to robotic gripper
+                    # 16-31 proximity of hand parts to object
+                    distance_costs = np.array([-0.5 , -0.01, -0.01, -0.01, -0.01, -0.01, -0.01, -0.01, 
+                                               -0.01, -0.01, -0.01, -0.01, -0.01, -0.01, -0.01, -0.01, 
+                                               -1.  ,  0.  ,  0.  ,  0.1 ,  0.  ,  0.  ,  0.1 ,  0.  , 
+                                                0.  ,  0.1 ,  0.  ,  0.  ,  0.1 ,  0.  ,  0.  ,  0.1 ])
+                    cost_component_randomizer = np.random.uniform(0.5, 2, size=distance_costs.shape)
+                    distance_costs = distance_costs * cost_component_randomizer
+                    grasp_list = sorted(grasp_list, key=lambda g: np.sum(np.array(g['handpart_distances'])*distance_costs))
+                except Exception as ex:
+                    print('No handpart_distances in '+grasp_path)
+                    grasp_list = grasps['grasps']
+                
                 for idx, grasp in enumerate(grasp_list[:grasp_nb]):
                     if not grasp_wrong(grasp, angle=filter_angle):
                             object_cat = grasps['object_cat']
