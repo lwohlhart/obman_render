@@ -18,5 +18,8 @@ do
                 \"grasp_folder\": \"assets/grasps/3dnet_grasps_final\",\
                 \"grasp_split_path\": \"assets/grasps/3dnet_grasps_splits.csv\",\
                 \"random_obj_textures\": 1,\
+                \"shapenet_root\": \"/media/robotics/Seagate Expansion Drive/lwohlhart_datasets/ShapeNetCore.v2\",\
+                \"objects_root\": \"/home/robotics/work/dex-net-new/dex-net/.dexnet/3dnet\",\
+                \"obj_models\": \"3dnet\",\
                 \"z_max\": 1.2 }
 done

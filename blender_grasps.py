@@ -62,6 +62,8 @@ def exp_config():
     grasp_split_path = 'assets/grasps/shapenet_grasps_splits.csv'
     random_obj_textures = True
     shapenet_root = '/sequoia/data2/dataset/shapenet/ShapeNetCore.v2'
+    objects_root = shapenet_root
+    obj_models = 'shapenet'
     # Minimum ratio of object visibility
     min_obj_ratio = 0.4
 
@@ -77,6 +79,7 @@ def run(results_root, split, frame_nb, frame_start, z_min, z_max, texture_zoom,
         ambiant_add, grasp_folder, grasp_split_path, min_obj_ratio, _config,
         obj_tex_datasets, random_obj_textures, grasp_nb, lsun_path,
         smpl_data_path, smpl_model_path, mano_right_path, shapenet_root,
+        objects_root, obj_models,
         imagenet_path):
     print(_config)
     scene = bpy.data.scenes['Scene']
@@ -109,13 +112,13 @@ def run(results_root, split, frame_nb, frame_start, z_min, z_max, texture_zoom,
     ncomps = 45
     grasp_info = read_grasp_folder(
         grasp_folder=grasp_folder,
-        objects_root=shapenet_root,
+        objects_root=objects_root,
         split_path=grasp_split_path,
         split=split,
         filter_angle=94,
         grasp_nb=grasp_nb,
         mano_path=mano_right_path,
-        obj_models='shapenet',
+        obj_models=obj_models,
         use_cache=True)
 
     print('Loaded grasp info for {} grasps'.format(len(grasp_info)))
