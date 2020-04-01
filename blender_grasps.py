@@ -232,8 +232,12 @@ def run(results_root, split, frame_nb, frame_start, z_min, z_max, texture_zoom,
                 obj_texture = random.choice(obj_textures)
                 generated_uv = True
             else:
-                obj_texture = os.path.join(
-                    os.path.dirname(obj_path), 'texture.jpg')
+                if obj_models == 'ycb':
+                    obj_texture = os.path.join(
+                        os.path.dirname(obj_path), 'texture_map.png')
+                else:
+                    obj_texture = os.path.join(
+                        os.path.dirname(obj_path), 'texture.jpg')                
                 generated_uv = False
             obj_sh_path = texturing.add_obj_texture(
                 obj_mat,
