@@ -80,6 +80,8 @@ def load_smpl(template='assets/models/basicModel_{}_lbs_10_207_0_v1.0.2.fbx',
     bpy.data.meshes['Untitled'].name = 'Body'
     return ob
 
+def load_cmu_pose_subselection(poses_file='assets/oaho/oaho_cmu_poses.txt'):
+    return np.loadtxt(poses_file, dtype=np.int32)
 
 def random_global_rotation(max_rand_angle=2*np.pi):
     """
@@ -119,7 +121,8 @@ def randomized_verts(model,
                      random_pose=False,
                      body_rot=True,
                      side='right',
-                     split='train'):
+                     split='train',
+                     selected_cmu_poses=None):
     """
     Args:
         model: SMPL+H chumpy model
@@ -139,17 +142,27 @@ def randomized_verts(model,
     else:
         center_idx = 40
     # Load smpl
-    if split == 'test':
-        cmu_idx = random.choice(list(range(4000, 4700)))
-    elif split == 'val':
-        cmu_idx = random.choice(list(range(4700, 5338)))
+    if selected_cmu_poses is None:
+        if split == 'test':
+            cmu_idx = random.choice(list(range(4000, 4700)))
+        elif split == 'val':
+            cmu_idx = random.choice(list(range(4700, 5338)))
+        else:
+            cmu_idx = random.choice(list(range(0, 4000)))
     else:
-        cmu_idx = random.choice(list(range(0, 4000)))
+        if split == 'test':
+            selected_pose_indices = np.where(np.bitwise_and(selected_cmu_poses[:,0] >= 4000, selected_cmu_poses[:,0] < 4700))[0]
+        elif split == 'val':
+            selected_pose_indices = np.where(np.bitwise_and(selected_cmu_poses[:,0] >= 4700, selected_cmu_poses[:,0] < 5338))[0]
+        else:
+            selected_pose_indices = np.where(selected_cmu_poses[:,0] < 4000)[0]
+        cmu_idx, randframe = selected_cmu_poses[np.random.choice(selected_pose_indices)]
 
     cmu_parms, fshapes, name = load_body_data(smpl_data, idx=cmu_idx)
     pose_data = cmu_parms[name]['poses']
     nframes = pose_data.shape[0]
-    randframe = np.random.randint(nframes)
+    if selected_cmu_poses is None:
+        randframe = np.random.randint(nframes)
 
     # Init with zero trans
     model.trans[:] = np.zeros(model.trans.size)
@@ -171,9 +184,9 @@ def randomized_verts(model,
 
     # Overwrite global rotation with uniform random rotation
     if body_rot:
-        randpose[0:3] = random_global_rotation()
+        randpose[0:3] = random_global_rotation(0.4)
     else:
-        randpose[0:3] = [-np.pi/2, 0, 0]
+        randpose[0:3] = [0,0,0]#[-np.pi/2, 0, 0]
 
     hand_comps = int(ncomps / 2)
     hand_idx = 66
