@@ -23,6 +23,7 @@ from obman_render import (mesh_manip, render, texturing, conditions, imageutils,
 from obman_render.blenderobj import load_obj_model, delete_obj_model
 from serialization import load_model
 from smpl_handpca_wrapper import load_model as smplh_load_model
+from obman_render import ho3dutils
 
 ex = Experiment('generate_dataset')
 
@@ -64,6 +65,9 @@ def exp_config():
     shapenet_root = '/sequoia/data2/dataset/shapenet/ShapeNetCore.v2'
     objects_root = shapenet_root
     obj_models = 'shapenet'
+
+    export_ho3d = False
+    cmu_pose_selection = None
     # Minimum ratio of object visibility
     min_obj_ratio = 0.4
 
@@ -79,7 +83,7 @@ def run(results_root, split, frame_nb, frame_start, z_min, z_max, texture_zoom,
         ambiant_add, grasp_folder, grasp_split_path, min_obj_ratio, _config,
         obj_tex_datasets, random_obj_textures, grasp_nb, lsun_path,
         smpl_data_path, smpl_model_path, mano_right_path, shapenet_root,
-        objects_root, obj_models,
+        objects_root, obj_models, export_ho3d, cmu_pose_selection,
         imagenet_path):
     print(_config)
     scene = bpy.data.scenes['Scene']
@@ -92,9 +96,15 @@ def run(results_root, split, frame_nb, frame_start, z_min, z_max, texture_zoom,
     folder_segm = os.path.join(results_root, 'segm')
     folder_temp_segm = os.path.join(results_root, 'tmp_segm')
     folder_depth = os.path.join(results_root, 'depth')
+    folder_ho3d_rgb = os.path.join(results_root, 'ho3d/rgb')
+    folder_ho3d_depth = os.path.join(results_root, 'ho3d/depth')
+    folder_ho3d_seg = os.path.join(results_root, 'ho3d/seg')
+    folder_ho3d_meta = os.path.join(results_root, 'ho3d/meta')
     folders = [
         folder_meta, folder_rgb, folder_segm, folder_temp_segm, folder_depth
     ]
+    if export_ho3d:
+        folders.extend([folder_ho3d_rgb, folder_ho3d_depth, folder_ho3d_seg, folder_ho3d_meta])
     folder_rgb_hand = os.path.join(results_root, 'rgb_hand')
     folder_rgb_obj = os.path.join(results_root, 'rgb_obj')
     folder_depth_hand = os.path.join(results_root, 'depth_hand')
@@ -156,6 +166,10 @@ def run(results_root, split, frame_nb, frame_start, z_min, z_max, texture_zoom,
 
     # Load smpl info
     smpl_data = np.load(smpl_data_path)
+    if cmu_pose_selection is not None and os.path.exists(cmu_pose_selection):
+        selected_cmu_poses = mesh_manip.load_cmu_pose_subselection(cmu_pose_selection)
+    else:
+        selected_cmu_poses = None
 
     smplh_verts, faces = smplh_model.r, smplh_model.f
     smplh_obj = mesh_manip.load_smpl()
@@ -203,7 +217,8 @@ def run(results_root, split, frame_nb, frame_start, z_min, z_max, texture_zoom,
             hand_pose_offset=0,
             random_shape=False,
             random_pose=True,
-            split=split)
+            split=split,
+            selected_cmu_poses=selected_cmu_poses)
 
         # Center mesh on center_idx
         mesh_manip.alter_mesh(smplh_obj, smplh_verts.tolist())
@@ -215,6 +230,7 @@ def run(results_root, split, frame_nb, frame_start, z_min, z_max, texture_zoom,
         obj.scale = (obj_scale, obj_scale, obj_scale)
         obj.rotation_euler = (0, 0, 0)
         bpy.ops.object.shade_smooth()
+        obj_bounding_box_rest = np.array(obj.bound_box)
 
         model_name = obj.name
         obj_mesh = bpy.data.meshes[model_name]
@@ -259,6 +275,7 @@ def run(results_root, split, frame_nb, frame_start, z_min, z_max, texture_zoom,
         obj_transform = rigid_transform.dot(obj.matrix_world)
         obj.matrix_world = Matrix(obj_transform)
         obj.scale = (obj_scale, obj_scale, obj_scale)
+        obj_bounding_box = np.dot(obj_transform, np.hstack([obj_bounding_box_rest, np.ones((obj_bounding_box_rest.shape[0],1))]).transpose()).transpose()[:,:3]
 
         hand_info = coordutils.get_hand_body_info(
             posed_model,
@@ -398,6 +415,10 @@ def run(results_root, split, frame_nb, frame_start, z_min, z_max, texture_zoom,
             final_depth_path = os.path.join(folder_depth,
                                             '{}.png'.format(frame_prefix))
             cv2.imwrite(final_depth_path, depth)
+            if export_ho3d:
+                ho3d_final_depth_path = os.path.join(folder_ho3d_depth,
+                                                '{}.png'.format(frame_prefix))
+                ho3dutils.write_depth_img(ho3d_final_depth_path, tmp_depth)
 
             # Save meta
             meta_pkl_path = os.path.join(folder_meta,
@@ -405,10 +426,27 @@ def run(results_root, split, frame_nb, frame_start, z_min, z_max, texture_zoom,
             with open(meta_pkl_path, 'wb') as meta_f:
                 pickle.dump(hand_infos, meta_f)
 
+            if export_ho3d:
+                ho3d_meta_pkl_path = os.path.join(folder_ho3d_meta,
+                                            '{}.pkl'.format(frame_prefix))
+                with open(ho3d_meta_pkl_path, 'wb') as ho3d_anno_f:
+                    ho3d_anno = ho3dutils.get_ho3d_annotation(hand_infos, cam_calib, obj_bounding_box_rest, obj_bounding_box, rigid_transform, mano_model)
+                    pickle.dump(ho3d_anno, ho3d_anno_f, protocol=2)
+
             # Write segmentation path
             segm_save_path = os.path.join(folder_segm,
                                           '{}.png'.format(frame_prefix))
             cv2.imwrite(segm_save_path, segm_img)
+
+            if export_ho3d:
+                ho3d_seg_save_path = os.path.join(folder_ho3d_seg,
+                                            '{}.jpg'.format(frame_prefix))
+                ho3d_seg_img = np.zeros_like(segm_img, dtype=np.uint8)
+                seg = segm_img[:,:,0]
+                ho3d_seg_img[np.where(np.logical_and(seg >= 21, seg < 100))] = (0,0,255)
+                ho3d_seg_img[np.where(seg >= 100)] = (255,0,0)
+                cv2.imwrite(ho3d_seg_save_path, ho3d_seg_img)
+                
             ex.log_scalar('generated.idx', frame_idx)
         else:
             os.remove(img_path)

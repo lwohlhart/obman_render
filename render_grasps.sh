@@ -21,5 +21,7 @@ do
                 \"shapenet_root\": \"/media/robotics/Seagate Expansion Drive/lwohlhart_datasets/ShapeNetCore.v2\",\
                 \"objects_root\": \"/home/robotics/work/dex-net-new/dex-net/.dexnet/3dnet\",\
                 \"obj_models\": \"3dnet\",\
+                \"cmu_pose_selection\": \"assets/oaho/oaho_cmu_poses.txt\",\
+                \"export_ho3d\": 1,\
                 \"z_max\": 1.2 }
 done
