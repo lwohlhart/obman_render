@@ -177,8 +177,8 @@ def run(results_root, split, frame_nb, frame_start, z_min, z_max, texture_zoom,
     bpy.ops.object.shade_smooth()
 
     # Set camera rendering params
-    scene.render.resolution_x = 256
-    scene.render.resolution_y = 256
+    scene.render.resolution_x = 640
+    scene.render.resolution_y = 480
     scene.render.resolution_percentage = 100
 
     # Get camera info
