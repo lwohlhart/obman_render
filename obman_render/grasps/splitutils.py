@@ -77,6 +77,8 @@ def make_split(filepath='/sequoia/data2/dataset/shapenet/shapenet_select.csv',
 
 
 def read_split(split_path='misc/grasp_split.csv'):
+    if not os.path.exists(split_path):
+        return None
     samples = defaultdict(list)
     with open(split_path, newline='') as csvfile:
         csvreader = csv.reader(csvfile, delimiter=' ', quotechar='"')
