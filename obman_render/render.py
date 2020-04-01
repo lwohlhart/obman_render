@@ -128,8 +128,8 @@ def set_cycle_nodes(scene, bg_name, segm_path, depth_path, bg_depth_name=None):
             bg_depth_node.location = -600, 500
 
             bg_depth_adjust_node = node_tree.nodes.new(type='CompositorNodeMapValue')
-            bg_depth_adjust_node.size[0] = 1 # 100 # depth scale
-            bg_depth_adjust_node.offset[0] = 1 # maybe send back with offset
+            bg_depth_adjust_node.size[0] = 255/10 # 100 # depth scale / 10 * 255
+            bg_depth_adjust_node.offset[0] = 2 # maybe send back with offset
             bg_depth_adjust_node.location = -400, 500
             node_tree.links.new(bg_depth_node.outputs[0], bg_depth_adjust_node.inputs[0])
 
@@ -139,19 +139,26 @@ def set_cycle_nodes(scene, bg_name, segm_path, depth_path, bg_depth_name=None):
             bg_depth_scale_node.location = -200, 500
 
             node_tree.links.new(bg_depth_adjust_node.outputs[0], bg_depth_scale_node.inputs[0])
-            if False: # actually check if we want to mask occlusions
-                node_tree.links.new(bg_depth_scale_node.outputs[0], zcombined_node.inputs[3])
-            else:
-                _, occlusion_map_depth = set_depth_occlusion_nodes(node_tree, render_node)
+            node_tree.links.new(bg_depth_scale_node.outputs[0], zcombined_node.inputs[3])
 
-                occlusion_multiplier = node_tree.nodes.new(type="CompositorNodeMath")
-                occlusion_multiplier.name = 'occlusion_multiplier'
-                occlusion_multiplier.location = -100, 500
-                occlusion_multiplier.operation = 'MULTIPLY'
+            if True: # actually check if we want to mask occlusions
+                occlusion_region_thresh, occlusion_map_depth = set_depth_occlusion_nodes(node_tree, render_node)
 
-                node_tree.links.new(bg_depth_scale_node.outputs[0], occlusion_multiplier.inputs[0])
-                node_tree.links.new(occlusion_map_depth.outputs[0], occlusion_multiplier.inputs[1])
-                node_tree.links.new(occlusion_multiplier.outputs[0], zcombined_node.inputs[3])
+                # occlusion_multiplier = node_tree.nodes.new(type="CompositorNodeMath")
+                # occlusion_multiplier.name = 'occlusion_multiplier'
+                # occlusion_multiplier.location = -100, 500
+                # occlusion_multiplier.operation = 'MULTIPLY'
+
+                # node_tree.links.new(bg_depth_scale_node.outputs[0], occlusion_multiplier.inputs[0])
+                # node_tree.links.new(occlusion_map_depth.outputs[0], occlusion_multiplier.inputs[1])
+                # node_tree.links.new(occlusion_multiplier.outputs[0], zcombined_node.inputs[3])
+
+                depth_occlusion_node =  node_tree.nodes.new('CompositorNodeOutputFile')
+                depth_occlusion_node.format.file_format = 'PNG'                
+                depth_occlusion_node.base_path = os.path.dirname(depth_path)
+                depth_occlusion_node.file_slots[0].path = os.path.basename(depth_path)+'_occlusion'
+                depth_occlusion_node.location = 200, 500
+                node_tree.links.new(occlusion_region_thresh.outputs[0], depth_occlusion_node.inputs[0])
 
 
 
