@@ -10,6 +10,14 @@ def get_all_lsun(folder='/sequoia/data2/gvarol/datasets/LSUN/data/img'):
     bg_names = [os.path.join(folder, line.strip()) for line in lines]
     return bg_names
 
+def get_all_habitat(folder='assets/backgrounds/habitat/'):
+    bg_names = []
+    for root, dirnames, filenames in os.walk(folder):
+        for filename in [f for f in filenames if 'rgba' in f]:
+            bg_names.append(os.path.join(root, filename))
+    return bg_names
+
+
 
 def get_image_paths(
         background_datasets,
@@ -50,7 +58,7 @@ def get_image_paths(
                 shapenet_folder=shapenet_folder,
                 split=split))
     if 'habitat' in background_datasets:
-        backgrounds.append('assets/backgrounds/habitat/test.rgba.00973.png')
+        backgrounds.extend(get_all_habitat())        
     return backgrounds
 
 
