@@ -109,7 +109,7 @@ def run(results_root, split, frame_nb, frame_start, z_min, z_max, texture_zoom,
     ncomps = 45
     grasp_info = read_grasp_folder(
         grasp_folder=grasp_folder,
-        shapenet_root=shapenet_root,
+        objects_root=shapenet_root,
         split_path=grasp_split_path,
         split=split,
         filter_angle=94,

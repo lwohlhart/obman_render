@@ -78,7 +78,7 @@ def read_grasp_folder(
         obj_models='shapenet',
         split_path='assets/grasps/shapenet_grasps_splits.csv',
         split='train',
-        shapenet_root='/sequoia/data2/dataset/shapenet/ShapeNetCore.v2',
+        objects_root='/sequoia/data2/dataset/shapenet/ShapeNetCore.v2',
         use_cache=False, ):
     """
     Args:
@@ -109,16 +109,21 @@ def read_grasp_folder(
                 grasp_list = grasps['grasps']
                 for idx, grasp in enumerate(grasp_list[:grasp_nb]):
                     if not grasp_wrong(grasp, angle=filter_angle):
-                        if obj_models == 'shapenet':
                             object_cat = grasps['object_cat']
                             object_id = grasps['object_id']
-                            shapenet_template = os.path.join(
-                                shapenet_root,
-                                '{}/{}/models/model_normalized.obj')
-                            obj_full_path = shapenet_template.format(
-                                object_cat, object_id)
                             object_scale = grasps['object_scale']
                             sample_key = (object_cat, object_id)
+                        if obj_models == 'shapenet':
+                            obj_full_path = os.path.join(
+                                objects_root,
+                                '{}/{}/models/model_normalized.obj'.format(object_cat, object_id))
+                        if obj_models == '3dnet' or obj_models == 'kit':
+                            obj_full_path = os.path.join(
+                                objects_root, '{}.obj'.format(object_id))
+                        if obj_models == 'ycb':
+                            obj_full_path = os.path.join(
+                                objects_root, '{}/textured.obj'.format(object_id))
+
                         if (split_data is None
                                 or sample_key in split_data[split]):
                             grasp_info.append({
