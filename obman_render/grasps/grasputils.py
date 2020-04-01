@@ -123,10 +123,10 @@ def read_grasp_folder(
                 
                 for idx, grasp in enumerate(grasp_list[:grasp_nb]):
                     if not grasp_wrong(grasp, angle=filter_angle):
-                            object_cat = grasps['object_cat']
-                            object_id = grasps['object_id']
-                            object_scale = grasps['object_scale']
-                            sample_key = (object_cat, object_id)
+                        object_cat = grasps['object_cat']
+                        object_id = grasps['object_id']
+                        object_scale = grasps['object_scale']
+                        sample_key = (object_cat, object_id)
                         if obj_models == 'shapenet':
                             obj_full_path = os.path.join(
                                 objects_root,
