@@ -81,7 +81,7 @@ def load_smpl(template='assets/models/basicModel_{}_lbs_10_207_0_v1.0.2.fbx',
     return ob
 
 
-def random_global_rotation():
+def random_global_rotation(max_rand_angle=2*np.pi):
     """
     Creates global random rotation in axis-angle rotation format.
     """
@@ -98,7 +98,7 @@ def random_global_rotation():
         np.sin(randelevation)
     ]
     # Random angle
-    randangle = 2 * np.pi * np.random.rand(1)
+    randangle = max_rand_angle * np.random.rand(1)
     # Construct axis-angle vector
     randaxisangle = randangle * randaxis
 
