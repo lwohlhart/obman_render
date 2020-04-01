@@ -1,3 +1,6 @@
+.python-version
+.vscode
+*.pyc
 __pycache__/
 */__pycache__
 *keep_idxs.pyc
