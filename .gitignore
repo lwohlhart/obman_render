@@ -41,6 +41,8 @@ assets/textures/bodywithands
 assets/textures/bodywithands.zip
 assets/grasps/shapenet_grasps
 assets/SURREAL
+assets/oaho
+assets/grasps
 
 misc/
 data/
@@ -48,7 +50,7 @@ results/
 psb/
 tmp/
 generated/
-
+datageneration/
 
 psb
 psb_v1.tar.gz
